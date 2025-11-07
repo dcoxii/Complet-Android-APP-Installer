@@ -1,36 +1,50 @@
-name: Build APK & Magisk Release
+name: Build APK & Magisk Release (Auto from Tag)
 
 on:
   push:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+
 jobs:
+
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # REQUIRED so git tags are available
 
-      - name: Set up JDK
+      - name: Fetch tags
+        run: git fetch --tags
+
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: "temurin"
-          java-version: "17"
+          distribution: temurin
+          java-version: 17
 
-      - name: Build Android APK (release)
+      - name: Make gradlew executable
+        working-directory: ./CompanionApp/installer-app
+        run: chmod +x gradlew
+
+      - name: Build Android APK (Release)
         working-directory: ./CompanionApp/installer-app
         run: ./gradlew assembleRelease
 
       - name: Zip Magisk module
         working-directory: ./MagiskModule
-        run: zip -r ../APKInstaller-Magisk.zip .
+        run: |
+          zip -r ../APKInstaller-Magisk.zip .
 
-      - name: Upload artifacts (APK + Magisk ZIP)
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: outputs
+          name: build-output
           path: |
             CompanionApp/installer-app/build/outputs/apk/release/app-release.apk
             APKInstaller-Magisk.zip
@@ -40,12 +54,12 @@ jobs:
     needs: build
 
     steps:
-      - name: Download compiled artifacts
+      - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: outputs
+          name: build-output
 
-      - name: Publish GitHub Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
