@@ -1,0 +1,7 @@
+id=custom-apk-installer
+name=Complete APK Installer Module
+version=1.0
+versionCode=1
+author=dcoxii
+description=Install APK/APKM/XAPK systemlessly via Magisk flash
+updateJson=https://raw.githubusercontent.com/dcoxii/Complet-Android-APP-Installer/main/update.json

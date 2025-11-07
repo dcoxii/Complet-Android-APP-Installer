@@ -1,0 +1,6 @@
+{
+  "version": "1.0",
+  "versionCode": 1,
+  "zipUrl": "https://github.com/dcoxii/Complet-Android-APP-Installer/releases/latest/download/APKInstaller-Magisk.zip",
+  "changelog": "Added OTA updater + auto-install on boot + log cleanup"
+}

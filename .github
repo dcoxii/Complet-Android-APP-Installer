@@ -1,0 +1,57 @@
+name: Build APK & Magisk Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Build Android APK (release)
+        working-directory: ./CompanionApp/installer-app
+        run: ./gradlew assembleRelease
+
+      - name: Zip Magisk module
+        working-directory: ./MagiskModule
+        run: zip -r ../APKInstaller-Magisk.zip .
+
+      - name: Upload artifacts (APK + Magisk ZIP)
+        uses: actions/upload-artifact@v4
+        with:
+          name: outputs
+          path: |
+            CompanionApp/installer-app/build/outputs/apk/release/app-release.apk
+            APKInstaller-Magisk.zip
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download compiled artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: outputs
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            app-release.apk
+            APKInstaller-Magisk.zip
+          generate_release_notes: true
+
